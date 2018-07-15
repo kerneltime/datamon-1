@@ -1,8 +1,6 @@
 package goofys
 
 import (
-	. "github.com/kahing/goofys/internal"
-
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,16 +13,14 @@ import (
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/jinzhu/copier"
 	"github.com/sirupsen/logrus"
 )
 
-var log = GetLogger("main")
-
 type Config struct {
 	// File system
-	MountOptions map[string]string
-	MountPoint   string
+	MountOptions  map[string]string
+	MountPoint    string
+	MountPointArg string
 
 	Cache    []string
 	DirMode  os.FileMode
@@ -61,59 +57,54 @@ func Mount(
 	bucketName string,
 	config *Config) (fs *Goofys, mfs *fuse.MountedFileSystem, err error) {
 
-	var flags FlagStorage
-	copier.Copy(&flags, config)
-
 	awsConfig := &aws.Config{
-		Region: &flags.Region,
-		Logger: GetLogger("s3"),
+		Region: aws.String("us-west-2"),
+		Logger: s3Log,
 		//LogLevel: aws.LogLevel(aws.LogDebug),
 	}
 
-	if len(flags.Profile) > 0 {
-		awsConfig.Credentials = credentials.NewSharedCredentials("", flags.Profile)
+	if len(config.Profile) > 0 {
+		awsConfig.Credentials = credentials.NewSharedCredentials("", config.Profile)
 	}
 
-	if len(flags.Endpoint) > 0 {
-		awsConfig.Endpoint = &flags.Endpoint
+	if len(config.Endpoint) > 0 {
+		awsConfig.Endpoint = &config.Endpoint
 	}
 
 	awsConfig.S3ForcePathStyle = aws.Bool(true)
 
-	fs = NewGoofys(ctx, bucketName, awsConfig, &flags)
+	fs = NewGoofys(ctx, bucketName, awsConfig, config)
 	if fs == nil {
 		err = fmt.Errorf("Mount: initialization failed")
 		return
 	}
 	server := fuseutil.NewFileSystemServer(fs)
 
-	fuseLog := GetLogger("fuse")
-
 	// Mount the file system.
 	mountCfg := &fuse.MountConfig{
 		FSName:                  bucketName,
-		Options:                 flags.MountOptions,
+		Options:                 config.MountOptions,
 		ErrorLogger:             GetStdLogger(NewLogger("fuse"), logrus.ErrorLevel),
 		DisableWritebackCaching: true,
 	}
 
-	if flags.DebugFuse {
+	if config.DebugFuse {
 		fuseLog.Level = logrus.DebugLevel
 		log.Level = logrus.DebugLevel
 		mountCfg.DebugLogger = GetStdLogger(fuseLog, logrus.DebugLevel)
 	}
 
-	mfs, err = fuse.Mount(flags.MountPoint, server, mountCfg)
+	mfs, err = fuse.Mount(config.MountPoint, server, mountCfg)
 	if err != nil {
 		err = fmt.Errorf("Mount: %v", err)
 		return
 	}
 
-	if len(flags.Cache) != 0 {
-		log.Infof("Starting catfs %v", flags.Cache)
-		catfs := exec.Command("catfs", flags.Cache...)
+	if len(config.Cache) != 0 {
+		log.Infof("Starting catfs %v", config.Cache)
+		catfs := exec.Command("catfs", config.Cache...)
 		lvl := logrus.InfoLevel
-		if flags.DebugFuse {
+		if config.DebugFuse {
 			lvl = logrus.DebugLevel
 			catfs.Env = append(catfs.Env, "RUST_LOG=debug")
 		} else {
@@ -128,7 +119,7 @@ func Mount(
 
 			// sleep a bit otherwise can't unmount right away
 			time.Sleep(time.Second)
-			err2 := TryUnmount(flags.MountPoint)
+			err2 := TryUnmount(config.MountPoint)
 			if err2 != nil {
 				err = fmt.Errorf("%v. Failed to unmount: %v", err, err2)
 			}
@@ -142,14 +133,14 @@ func Mount(
 				// if catfs terminated cleanly, it
 				// should have unmounted this,
 				// otherwise we will do it ourselves
-				err2 := TryUnmount(flags.MountPointArg)
+				err2 := TryUnmount(config.MountPointArg)
 				if err2 != nil {
 					log.Errorf("Failed to unmount: %v", err2)
 				}
 			}
 
-			if flags.MountPointArg != flags.MountPoint {
-				err2 := TryUnmount(flags.MountPoint)
+			if config.MountPointArg != config.MountPoint {
+				err2 := TryUnmount(config.MountPoint)
 				if err2 != nil {
 					log.Errorf("Failed to unmount: %v", err2)
 				}

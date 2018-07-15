@@ -4,7 +4,9 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"log/syslog"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -30,5 +32,10 @@ func Execute() {
 }
 
 func init() {
+	w, err := syslog.New(syslog.LOG_DEBUG, "")
+	if err != nil {
+		panic(err)
+	}
 	log.SetFlags(0)
+	log.SetOutput(io.MultiWriter(os.Stderr, w))
 }

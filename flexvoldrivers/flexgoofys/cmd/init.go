@@ -49,6 +49,7 @@ func respond(status driverStatus, msg string) {
 	if status == dsFailure {
 		os.Exit(1)
 	}
+	os.Exit(0)
 }
 
 // initCmd represents the init command

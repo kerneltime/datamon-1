@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+package goofys
 
 import (
 	"fmt"
@@ -58,7 +58,7 @@ type Goofys struct {
 	bucket string
 	prefix string
 
-	flags *FlagStorage
+	flags *Config
 
 	umask uint32
 
@@ -105,9 +105,7 @@ type Goofys struct {
 	forgotCnt uint32
 }
 
-var s3Log = GetLogger("s3")
-
-func NewGoofys(ctx context.Context, bucket string, awsConfig *aws.Config, flags *FlagStorage) *Goofys {
+func NewGoofys(ctx context.Context, bucket string, awsConfig *aws.Config, flags *Config) *Goofys {
 	// Set up the basic struct.
 	fs := &Goofys{
 		bucket: bucket,

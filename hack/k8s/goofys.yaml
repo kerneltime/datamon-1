@@ -3,36 +3,31 @@ apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: ivan-goofys-dbg
-  name: ivan-goofys-dbg
+    app: ivan-goofys-alp
+  name: ivan-goofys-alp
 spec:
   selector:
     matchLabels:
-      app: ivan-goofys-dbg
+      app: ivan-goofys-alp
   template:
 
     metadata:
       labels:
-        app: ivan-goofys-dbg
+        app: ivan-goofys-alp
     spec:
       containers:
-      - image: casualjim/zsh
+      - image: alpine
         imagePullPolicy: IfNotPresent
-        name: dbg
+        name: alp
         stdin: true
         tty: true
         args:
-        - /bin/zsh
+        - /bin/sh
         volumeMounts:
           - name: shared
             mountPath: /mnt
-          - name: aws-creds
-            mountPath: /home/ivan/.aws
 
       volumes:
-      - name: aws-creds
-        secret:
-          secretName: aws-creds
       - name: shared
         flexVolume:
           driver: "oneconcern/flexgoofys"

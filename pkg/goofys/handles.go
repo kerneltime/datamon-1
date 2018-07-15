@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+package goofys
 
 import (
 	"fmt"
@@ -30,8 +30,6 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
-
-	"github.com/sirupsen/logrus"
 )
 
 type InodeAttributes struct {
@@ -119,7 +117,7 @@ func (inode *Inode) InflateAttributes() (attr fuseops.InodeAttributes) {
 }
 
 func (inode *Inode) logFuse(op string, args ...interface{}) {
-	if fuseLog.Level >= logrus.DebugLevel {
+	if fuseLog.Level >= 5 {
 		fuseLog.Debugln(op, inode.Id, *inode.FullName(), args)
 	}
 }

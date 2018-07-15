@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+package goofys
 
 import (
 	"fmt"
@@ -27,25 +27,35 @@ import (
 )
 
 var mu sync.Mutex
-var loggers = make(map[string]*LogHandle)
+var loggers map[string]*LogHandle
 
-var log = GetLogger("main")
-var fuseLog = GetLogger("fuse")
+var log *LogHandle
+var fuseLog *LogHandle
+var s3Log *LogHandle
+var mbufLog *LogHandle
+var bufferLog *LogHandle
 
 var syslogHook *logrus_syslog.SyslogHook
 
-func InitLoggers(logToSyslog bool) {
-	if logToSyslog {
-		var err error
-		syslogHook, err = logrus_syslog.NewSyslogHook("", "", syslog.LOG_DEBUG, "")
-		if err != nil {
-			panic("Unable to connect to local syslog daemon")
-		}
+func init() {
+	loggers = make(map[string]*LogHandle)
 
-		for _, l := range loggers {
-			l.Hooks.Add(syslogHook)
-		}
+	var err error
+	syslogHook, err = logrus_syslog.NewSyslogHook("", "", syslog.LOG_DEBUG, "")
+	if err != nil {
+		panic("Unable to connect to local syslog daemon")
 	}
+
+	for _, l := range loggers {
+		l.Hooks.Add(syslogHook)
+	}
+
+	log = GetLogger("main")
+	fuseLog = GetLogger("fuse")
+	s3Log = GetLogger("s3")
+	mbufLog = GetLogger("mbuf")
+	bufferLog = GetLogger("buffer")
+
 }
 
 type LogHandle struct {

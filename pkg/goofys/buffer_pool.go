@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+package goofys
 
 import (
 	"io"
@@ -150,8 +150,6 @@ func (pool *BufferPool) Free(buf []byte) {
 	pool.numBuffers--
 	pool.cond.Signal()
 }
-
-var mbufLog = GetLogger("mbuf")
 
 type MBuf struct {
 	pool    *BufferPool
@@ -311,8 +309,6 @@ func (mb *MBuf) Free() {
 
 	mb.buffers = nil
 }
-
-var bufferLog = GetLogger("buffer")
 
 type Buffer struct {
 	mu   sync.Mutex
