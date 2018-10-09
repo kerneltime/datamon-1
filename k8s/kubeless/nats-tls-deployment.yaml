@@ -1,0 +1,34 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata: 
+  labels:
+    kubeless: nats-trigger-controller
+  name: nats-trigger-controller
+  namespace: kubeless
+spec:
+  selector:
+    matchLabels:
+      kubeless: nats-trigger-controller
+  template:
+    metadata:
+      labels:
+        kubeless: nats-trigger-controller
+    spec:
+      containers:
+      - image: casualjim/nats-trigger-controller:latest
+        imagePullPolicy: IfNotPresent
+        name: nats-trigger-controller
+        env:
+          - name: NATS_URL
+            value: "tls://nats.platform.svc.cluster.local:4222"
+          - name: NATS_CERTS
+            value: /etc/nats
+        volumeMounts:
+          - mountPath: "/etc/nats"
+            name: nats-tls-pd
+            readOnly: true
+      serviceAccountName: controller-acct
+      volumes:
+        - name: nats-tls-pd
+          secret:
+            secretName: nats-client-tls

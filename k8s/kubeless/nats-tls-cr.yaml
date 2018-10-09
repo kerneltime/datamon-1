@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: nats-controller-deployer
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - configmaps
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - kubeless.io
+  resources:
+  - functions
+  - natstriggers
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - delete
