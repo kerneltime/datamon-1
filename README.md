@@ -1,11 +1,11 @@
-# Trumpet
+# Datamon
 
-Trumpet is a datascience tool that helps managing data at scale.
+Datamon is a datascience tool that helps managing data at scale.
 It's main goals are to version data and models together with the results they produce. 
 A secondary goal to managing the data might be that it provides a scheduler to run jobs on top of a kubernetes cluster
 or with a serverless framework.
 
-The name is a reference to [Torricelli's Trumpet](https://en.wikipedia.org/wiki/Gabriel%27s_Horn) aka [Gabriel's Horn](https://en.wikipedia.org/wiki/Gabriel%27s_Horn)
+![Image of Datamon](docs/Digimon_adventures_datamon_by_renzo_senpai-d8y3o4p.png)
 
 ## Design
 
@@ -121,10 +121,9 @@ tpt repo tag delete --repo hello-there --name v0.1.0
 tpt repo tag checkout --repo hello-there --name v0.1.0
 ```
 
-### Tunes
+### Models
 
-Tunes are the tasks that can be executed with trumpet.
-You can box a 
+See [models document](docs/models.md)
 
 ## Data Management
 
