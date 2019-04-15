@@ -5,6 +5,7 @@ endif
 ifndef GITHUB_TOKEN
 $(error "Must set GITHUB_TOKEN") # this is a Make error
 endif
+
 # COLORS
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
@@ -13,6 +14,13 @@ RESET  := $(shell tput -Txterm sgr0)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 LOCAL_KUBECTX ?= "docker-for-desktop"
 TARGET_MAX_CHAR_NUM=25
+
+# Version and repo
+VERSION=$(shell git describe --tags)
+COMMIT=$(shell git rev-parse HEAD)
+GITDIRTY=$(shell git diff --quiet || echo 'dirty')
+REPOSITORY ?= "gcr.io/onec-co"
+
 ## Show help
 help:
 	@echo ''
@@ -34,12 +42,12 @@ help:
 ## Build datamon docker container (datamon)
 build-datamon:
 	@echo 'building ${YELLOW}datamon${RESET} container'
-	@docker build --pull --build-arg github_user=$(GITHUB_USER) --build-arg github_token=$(GITHUB_TOKEN) -t reg.onec.co/datamon:${GITHUB_USER}-$$(date '+%Y%m%d') -t reg.onec.co/datamon:$(subst /,_,$(GIT_BRANCH)) .
+	@docker build --pull --build-arg github_user=$(GITHUB_USER) --build-arg github_token=$(GITHUB_TOKEN) -t ${REPOSITORY}:${GITHUB_USER}-$$(date '+%Y%m%d') -t ${REPOSITORY}/datamon:$(subst /,_,$(GIT_BRANCH)) .
 
 .PHONY: push-datamon
 ## Push datamon docker container
 push-datamon:
-	@docker push reg.onec.co/datamon
+	@docker push ${REPOSITORY}/datamon
 
 .PHONY: build-all
 ## Build all the containers
@@ -49,7 +57,12 @@ build-all: clean build-datamon build-migrate
 ## Build migrate tool
 build-migrate:
 	@echo 'building ${YELLOW}migrate${RESET} container'
-	@docker build --pull --build-arg github_user=$(GITHUB_USER) --build-arg github_token=$(GITHUB_TOKEN) -t reg.onec/datamon:${GITHUB_USER}-$$(date '+%Y%m%d') -t reg.onec.co/datamon-migrate:$(subst /,_,$(GIT_BRANCH)) -f migrate.Dockerfile .
+	@docker build --pull --build-arg github_user=$(GITHUB_USER) --build-arg github_token=$(GITHUB_TOKEN) -t reg.onec/migrate:${GITHUB_USER}-$$(date '+%Y%m%d') -t reg.onec.co/migrate:$(subst /,_,$(GIT_BRANCH)) -f migrate.Dockerfile .
+
+.PHONY: build-csi
+build-csi:
+	@echo 'building ${yello}csi${RESET} container'
+	@docker build --pull --build-arg github_user=$(GITHUB_USER) --build-arg github_token=$(GITHUB_TOKEN) -t ${REPOSITORY}/datamon-csi:${GITHUB_USER}-$$(date '+%Y%m%d') -t ${REPOSITORY}/datamon-csi:$(subst /,_,$(GIT_BRANCH)) -f csi.Dockerfile .
 
 .PHONY: push-all
 ## Push all the containers

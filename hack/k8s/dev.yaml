@@ -9,5 +9,11 @@ spec:
       image: golang:1.11-alpine
       tty: true
       stdin: true
-
-
+      volumeMounts:
+        - name: credentials
+          readOnly: true
+          mountPath: "/etc/datamon-creds"
+  volumes:
+    - name: credentials
+      secret:
+        secretName: gcs-credentials

@@ -3,6 +3,9 @@ package csi
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/container-storage-interface/spec/lib/go/csi/v0"
 )
 
@@ -14,11 +17,11 @@ func newNodeServer() *nodeServer {
 }
 
 func (n *nodeServer) NodeStageVolume(context.Context, *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
-	return nil, nil
+	return nil, status.Error(codes.Unimplemented, "NodeStageVolume unsupported")
 }
 
 func (n *nodeServer) NodeUnstageVolume(context.Context, *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
-	return nil, nil
+	return nil, status.Error(codes.Unimplemented, "NodeUnstageVolume unsupported")
 }
 
 func (n *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
