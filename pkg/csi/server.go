@@ -35,12 +35,8 @@ type nonBlockingGRPCServer struct {
 }
 
 func (s *nonBlockingGRPCServer) Start(endpoint string, ids csi.IdentityServer, cs csi.ControllerServer, ns csi.NodeServer) {
-
 	s.wg.Add(1)
-
 	go s.serve(endpoint, ids, cs, ns)
-
-	return
 }
 
 func (s *nonBlockingGRPCServer) Wait() {
@@ -58,7 +54,7 @@ func (s *nonBlockingGRPCServer) serve(endpoint string, ids csi.IdentityServer, c
 	switch u.Scheme {
 	case "unix":
 		addr = u.Path
-		if err := os.Remove(addr); err != nil && !os.IsNotExist(err) {
+		if err = os.Remove(addr); err != nil && !os.IsNotExist(err) {
 			s.logger.Fatal("failed to remove", zap.String("addr", addr), zap.Error(err))
 		}
 	case "tcp":

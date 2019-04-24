@@ -19,6 +19,7 @@ type Config struct {
 	RunNode       bool
 	Mounter       mount.Interface
 	Logger        *zap.Logger
+	LocalFS       string
 }
 
 type Driver struct {
@@ -44,7 +45,7 @@ func NewDatamonDriver(config *Config, blobStore storage.Store, metadataStore sto
 	if config.NodeID == "" {
 		return nil, fmt.Errorf("node id missing")
 	}
-	if config.RunController == false && config.RunNode == false {
+	if !config.RunController && !config.RunNode {
 		return nil, fmt.Errorf("must run at least one controller or node service")
 	}
 	if blobStore == nil {
@@ -62,9 +63,6 @@ func NewDatamonDriver(config *Config, blobStore storage.Store, metadataStore sto
 
 	// Setup RPC servers
 	driver.ids = newIdentityServer(driver)
-	if config.RunNode {
-		driver.nodeServer = newNodeServer()
-	}
 	if config.RunController {
 		csc := []csi.ControllerServiceCapability_RPC_Type{
 			csi.ControllerServiceCapability_RPC_LIST_VOLUMES,         // List the repos
@@ -76,6 +74,12 @@ func NewDatamonDriver(config *Config, blobStore storage.Store, metadataStore sto
 		driver.controllerServer = newControllerServer(&controllerServerConfig{
 			driver: driver,
 		})
+	}
+	if config.RunNode {
+		if config.LocalFS == "" {
+			return nil, fmt.Errorf("localFS to use is missing")
+		}
+		driver.nodeServer = newNodeServer(driver)
 	}
 
 	return driver, nil

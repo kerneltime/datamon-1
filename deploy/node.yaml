@@ -2,7 +2,6 @@ kind: DaemonSet
 apiVersion: apps/v1
 metadata:
   name: datamon-csi-node
-  namespace: datamon-csi-driver
 spec:
   selector:
     matchLabels:
@@ -33,18 +32,17 @@ spec:
           volumeMounts:
             - name: plugin-dir
               mountPath: /csi
-          #  - name: registrar-socket-dir
-          #    mountPath: /var/lib/csi/sockets/
         - name: datamon-node-driver
           securityContext:
             privileged: true
           imagePullPolicy: Always
           image: gcr.io/onec-co/datamon-csi:csi
           args:
-            - "--v=5"
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--nodeid=$(KUBE_NODE_NAME)"
-            - "--node=true"
+            - "--server=true"
+            - "--log-level=debug"
+            - "--credential=/etc/datamon-creds/gcp-storage-admin.json"
           env:
             - name: CSI_ENDPOINT
               value: unix:/csi/csi.sock
@@ -52,23 +50,26 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/etc/datamon-creds/gcp-storage-admin.json"
           volumeMounts:
             - name: kubelet-dir
               mountPath: /var/lib/kubelet
               mountPropagation: "Bidirectional"
             - name: plugin-dir
               mountPath: /csi
+            - name: credentials
+              readOnly: true
+              mountPath: "/etc/datamon-creds"
       volumes:
-        # TODO(dependency): this will work when kublet registrar functionality exists
-        #- name: registrar-socket-dir
-        #  hostPath:
-        #    path: /var/lib/kubelet/device-plugins/
-        #    type: DirectoryOrCreate
         - name: kubelet-dir
           hostPath:
             path: /var/lib/kubelet
             type: Directory
         - name: plugin-dir
           hostPath:
-            path: /var/lib/kubelet/plugins/com.google.csi.filestore/
+            path: /var/lib/kubelet/plugins/com.datamon.csi/
             type: DirectoryOrCreate
+        - name: credentials
+          secret:
+            secretName: gcs-credentials

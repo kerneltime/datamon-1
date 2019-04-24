@@ -17,3 +17,11 @@ spec:
     - name: credentials
       secret:
         secretName: gcs-credentials
+    - name: datamon
+      csi:
+        driver: com.datamon.csi
+        volumeAttributes:
+          repo: ritesh-test-repo
+          bundle: 1JPb0XKiMJuw4eKkrIfMxbqUWYg
+
+
