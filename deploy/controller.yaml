@@ -20,7 +20,7 @@ spec:
       containers:
         - name: csi-external-attacher
           imagePullPolicy: Always
-          image: quay.io/k8scsi/csi-attacher:v0.3.0
+          image: quay.io/k8scsi/csi-attacher:v0.4.1
           args:
             - "--v=4"
             - "--csi-address=$(ADDRESS)"
